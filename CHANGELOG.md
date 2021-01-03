@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Add extracts:
+  - `extractTests`
+  - `extractSource`
+- Export typeguard return types for `isCallExpression`
+
 ## 0.2.0
 
 - Add Traverser (with support for `break/stop` and `skip/shallow`)
