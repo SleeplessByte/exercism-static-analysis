@@ -1,6 +1,7 @@
 # exercism-static-analysis
 
 > You can use [AstExplorer](https://astexplorer.net/) to preview the output of the parser.
+
 ## Installation
 
 Add this library to your project in `package.json`, for example via:
@@ -73,9 +74,11 @@ traverse(root, {
     // when a node is exited
   },
 
-  [AST_NODE_TYPES.ArrayExpression]: void {
-    // when a node with node.type === AST_NODE_TYPES.ArrayExpression is entered
-  }
+  [AST_NODE_TYPES.ArrayExpression]: void (
+    {
+      // when a node with node.type === AST_NODE_TYPES.ArrayExpression is entered
+    }
+  ),
 })
 ```
 
