@@ -8,6 +8,7 @@ import { isMemberExpression } from '../guards/is_member_expression'
 import { isLiteral } from '../guards/is_literal'
 import { isIdentifier } from '../guards/is_identifier'
 import { findFirst } from '../queries/find_first'
+import { extractSource } from './extract_source'
 
 type Node = TSESTree.Node
 type CallExpression = TSESTree.CallExpression
@@ -94,13 +95,58 @@ export class TestCase {
   ) {
     //
   }
+
+  public name(glue: ' > '): string {
+    return [...this.description, this.test].join(glue)
+  }
+
+  public testCode(source: string): string {
+    if (this.testNode.body.type === AST_NODE_TYPES.BlockStatement) {
+      return this.testNode.body.body
+        .map((statement) => extractSource(source, statement))
+        .join('\n')
+    }
+
+    return extractSource(source, this.testNode.body)
+  }
 }
 
 export class Expectation {
   constructor(
     public readonly statement: TSESTree.ExpressionStatement,
-    public readonly body: TSESTree.Node
+    public readonly expect: TSESTree.Node,
+    public readonly actual: TSESTree.Node
   ) {}
+
+  /**
+   * Returns the source code of the entire expectation statement
+   * @param source
+   */
+  public statementCode(source: string): string {
+    return extractSource(source, this.statement)
+  }
+
+  /**
+   * Given an expression such as expect(actual).toBe(true), returns everything
+   * except the expect(actual), namely .toBe(true).
+   *
+   * @param source
+   */
+  public expectCode(source: string): string {
+    return this.statementCode(source).substring(
+      extractSource(source, this.expect).length
+    )
+  }
+
+  /**
+   * Given an expression such as expect(actual).toBe(true), returns only the
+   * code inside expect(...), namely actual.
+   *
+   * @param source
+   */
+  public actualCode(source: string): string {
+    return extractSource(source, this.actual)
+  }
 }
 
 function extractExpectations(testNode: Node): Expectation[] {
@@ -124,7 +170,9 @@ function extractExpectations(testNode: Node): Expectation[] {
     )
 
     if (expectation) {
-      results.push(new Expectation(statement, expectation.arguments[0]))
+      results.push(
+        new Expectation(statement, expectation, expectation.arguments[0])
+      )
     }
   })
 

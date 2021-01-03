@@ -20,10 +20,38 @@ describe('extractTests', () => {
     expect(foundTest.description).toHaveLength(0)
     expect(foundTest.expectations).toHaveLength(2)
 
-    expect(extractSource(source, foundTest.expectations[0].body)).toBe('true')
-    expect(extractSource(source, foundTest.expectations[1].body)).toBe('false')
+    expect(others).toHaveLength(0)
+  })
+
+  it('can extract the test code', async () => {
+    const input = new InlineInput([
+      `test("it finds this test", () => {
+        const actual = 3 * 3
+        expect(actual).not.toBe(42)
+      })`,
+    ])
+    const [{ program, source }] = await AstParser.ANALYZER.parse(input)
+
+    const [foundTest, ...others] = extractTests(program)
+
+    expect(foundTest).not.toBeUndefined()
+    expect(foundTest.test).toBe('it finds this test')
+    expect(foundTest.description).toHaveLength(0)
+    expect(foundTest.expectations).toHaveLength(1)
 
     expect(others).toHaveLength(0)
+
+    const [expectation] = foundTest.expectations
+
+    const statementCode = expectation.statementCode(source)
+    const expectCode = expectation.expectCode(source)
+    const actualCode = expectation.actualCode(source)
+    const testCode = foundTest.testCode(source)
+
+    expect(statementCode).toBe('expect(actual).not.toBe(42)')
+    expect(expectCode).toBe('.not.toBe(42)')
+    expect(actualCode).toBe('actual')
+    expect(testCode).toBe('const actual = 3 * 3\nexpect(actual).not.toBe(42)')
   })
 
   const methods = ['it', 'xit', 'test', 'xtest']

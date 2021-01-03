@@ -63,8 +63,5 @@ export function isCallExpression<
     return true
   }
 
-  return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    isMemberExpression<any, any>(node.callee, object, property)
-  )
+  return isMemberExpression<string, string>(node.callee, object!, property!)
 }
